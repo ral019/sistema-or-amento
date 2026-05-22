@@ -1,0 +1,25 @@
+{
+  "name": "Casa dos Vidros - Orçamentos",
+  "short_name": "Casa dos Vidros",
+  "description": "Sistema de gestão e criação de orçamentos para vidraçaria e acabamentos.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#002137",
+  "theme_color": "#002137",
+  "orientation": "portrait-primary",
+  "categories": ["business", "utilities"],
+  "icons": [
+    {
+      "src": "https://i.postimg.cc/3JZGkGVs/Whats-App-Image-2026-02-20-at-13-13-16.jpg",
+      "sizes": "192x192",
+      "type": "image/jpeg",
+      "purpose": "any"
+    },
+    {
+      "src": "https://i.postimg.cc/3JZGkGVs/Whats-App-Image-2026-02-20-at-13-13-16.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    }
+  ]
+}

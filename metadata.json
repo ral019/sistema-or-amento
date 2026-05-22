@@ -1,0 +1,8 @@
+{
+  "name": "Sistema de Orçamento Profissional",
+  "description": "Uma aplicação moderna e profissional para criação de orçamentos, com upload de imagens, cálculos automáticos e exportação para PDF, mantendo a estrutura clássica de planilhas comerciais.",
+  "requestFramePermissions": [
+    "camera"
+  ],
+  "majorCapabilities": []
+}
