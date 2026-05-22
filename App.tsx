@@ -422,26 +422,26 @@ const App: React.FC = () => {
             className="max-w-4xl mx-auto bg-white shadow-2xl md:rounded-2xl overflow-hidden border border-slate-200 print:border-none print:shadow-none mb-10"
           >
             {/* CABEÇALHO */}
-            <header className="bg-[#002137] text-white p-4 md:p-6 flex flex-row items-center justify-between gap-4 md:gap-6 relative">
-              <div className="flex items-center gap-4 md:gap-6 flex-1">
+            <header className="bg-[#002137] text-white p-4 md:p-6 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 md:gap-6 relative">
+              <div className="flex flex-row items-center gap-3 md:gap-6 flex-1 w-full">
                 <CompanyLogo />
                 <div className="flex-1 flex flex-col justify-center text-left">
-                  <h1 className="text-xl md:text-2xl font-black tracking-tighter uppercase mb-0.5 bg-gradient-to-r from-white to-blue-100 bg-clip-text text-transparent leading-none">
+                  <h1 className="text-lg md:text-2xl font-black tracking-tighter uppercase mb-0.5 bg-gradient-to-r from-white to-blue-100 bg-clip-text text-transparent leading-none">
                     {COMPANY_INFO.name}
                   </h1>
-                  <p className="text-slate-300 text-[10px] md:text-[11px] font-medium uppercase tracking-tight leading-tight mb-2">
+                  <p className="text-slate-300 text-[9px] md:text-[11px] font-medium uppercase tracking-tight leading-tight mb-2">
                     {COMPANY_INFO.address}
                   </p>
-                  <div className="flex flex-col gap-1 text-[9px] text-slate-400 font-bold uppercase tracking-wider border-t border-white/5 pt-2">
-                    <span className="flex items-center gap-2">
+                  <div className="flex flex-col gap-1 text-[8px] md:text-[9px] text-slate-400 font-bold uppercase tracking-wider border-t border-white/5 pt-2">
+                    <span className="flex flex-wrap items-center gap-1 md:gap-2">
                       CNPJ: <span className="text-slate-200">{COMPANY_INFO.cnpj}</span> 
-                      <span className="text-slate-600">•</span> {COMPANY_INFO.city}
+                      <span className="text-slate-600 hidden sm:inline">•</span> {COMPANY_INFO.city}
                     </span>
-                    <div className="flex items-center gap-4">
-                      <span className="text-white font-extrabold flex items-center gap-1.5">
+                    <div className="flex flex-wrap items-center gap-2 md:gap-4 mt-0.5">
+                      <span className="text-white font-extrabold flex items-center gap-1">
                         <User className="w-2.5 h-2.5 text-blue-400" /> {COMPANY_INFO.owner}
                       </span>
-                      <span className="flex items-center gap-1.5 text-blue-300 font-extrabold">
+                      <span className="flex items-center gap-1 text-blue-300 font-extrabold">
                         <MessageCircle className="w-2.5 h-2.5" /> {COMPANY_INFO.phone}
                       </span>
                     </div>
@@ -449,29 +449,29 @@ const App: React.FC = () => {
                 </div>
               </div>
               
-              <div className="flex flex-col items-end justify-center gap-1.5 shrink-0 border-l border-white/10 pl-6 h-full header-right-side min-w-[200px]">
-                <div className="bg-blue-600/30 px-4 py-1.5 rounded-full border border-blue-400/30 text-blue-100 text-[10px] font-black uppercase tracking-[0.2em] mb-1">
+              <div className="flex flex-row md:flex-col items-center md:items-end justify-between md:justify-center gap-3 shrink-0 border-t md:border-t-0 md:border-l border-white/10 pt-4 md:pt-0 md:pl-6 header-right-side w-full md:w-auto md:min-w-[200px]">
+                <div className="bg-blue-600/30 px-3 md:px-4 py-1.5 rounded-full border border-blue-400/30 text-blue-100 text-[9px] md:text-[10px] font-black uppercase tracking-[0.2em] shrink-0">
                   Orçamento
                 </div>
-                <div className="space-y-1 w-full text-right flex flex-col items-end">
+                <div className="space-y-1.5 flex-1 md:flex-initial text-right flex flex-col items-end w-full max-w-[220px] md:max-w-none">
                   <div className="flex items-center justify-end gap-2 w-full">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-tighter shrink-0">DATA:</label>
+                    <label className="text-[9px] md:text-[10px] font-black text-slate-400 uppercase tracking-tighter shrink-0">DATA:</label>
                     <input 
                       type="text" 
                       value={clientData.date} 
                       onChange={handleClientChange} 
                       name="date" 
-                      className="bg-white/5 px-2 py-1 rounded border border-white/10 text-[12px] font-black text-right w-full max-w-[120px] outline-none text-white focus:bg-white/10" 
+                      className="bg-white/5 px-2 py-1 rounded border border-white/10 text-[11px] md:text-[12px] font-black text-right w-full max-w-[110px] md:max-w-[120px] outline-none text-white focus:bg-white/10" 
                     />
                   </div>
                   <div className="flex items-center justify-end gap-2 w-full">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-tighter shrink-0">Nº ORÇ:</label>
+                    <label className="text-[9px] md:text-[10px] font-black text-slate-400 uppercase tracking-tighter shrink-0">Nº ORÇ:</label>
                     <input 
                       type="text" 
                       value={clientData.quoteNumber} 
                       onChange={handleClientChange} 
                       name="quoteNumber" 
-                      className="bg-white/5 px-2 py-1 rounded border border-white/10 text-[12px] font-black text-right w-full max-w-[80px] outline-none text-white focus:bg-white/10" 
+                      className="bg-white/5 px-2 py-1 rounded border border-white/10 text-[11px] md:text-[12px] font-black text-right w-full max-w-[70px] md:max-w-[80px] outline-none text-white focus:bg-white/10" 
                     />
                   </div>
                 </div>
@@ -509,7 +509,7 @@ const App: React.FC = () => {
             </section>
 
             {/* INFO ADICIONAL */}
-            <section className="px-4 md:px-6 py-3 bg-slate-50 border-b border-slate-100 grid grid-cols-2 gap-4">
+            <section className="px-4 md:px-6 py-3 bg-slate-50 border-b border-slate-100 grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
               <div className="flex items-center gap-3">
                 <Info className="w-4 h-4 text-blue-600 shrink-0" />
                 <div className="flex-1">
@@ -540,40 +540,56 @@ const App: React.FC = () => {
 
               <div className="space-y-4">
                 {items.map((item) => (
-                  <div key={item.id} className="item-row flex flex-row items-start gap-4 border border-slate-100 rounded-xl p-3 bg-white relative group">
-                    <button onClick={() => removeItem(item.id)} className="absolute -top-2 -right-2 no-print text-white bg-red-500 p-1.5 rounded-full shadow-lg opacity-0 group-hover:opacity-100 z-10 transition-opacity">
+                  <div key={item.id} className="item-row flex flex-col sm:flex-row items-stretch sm:items-start gap-4 border border-slate-100 rounded-xl p-3 bg-white relative group">
+                    <button onClick={() => removeItem(item.id)} className="absolute -top-2 -right-2 no-print text-white bg-red-500 p-1.5 rounded-full shadow-lg opacity-100 sm:opacity-0 group-hover:opacity-100 z-10 transition-opacity">
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
-                    <div className="w-24 h-24 shrink-0 border-2 border-dashed border-slate-200 rounded-xl flex items-center justify-center overflow-hidden bg-slate-50 relative">
-                      {item.image ? (
-                        <img src={item.image} alt="Produto" className="w-full h-full object-cover" />
-                      ) : (
-                        <ImageIcon className="text-slate-300 w-6 h-6" />
-                      )}
-                      <input type="file" accept="image/*" onChange={(e) => handleImageUpload(item.id, e)} className="absolute inset-0 opacity-0 cursor-pointer no-print" />
+                    
+                    <div className="flex flex-row items-center gap-3 w-full sm:w-auto shrink-0">
+                      <div className="w-20 h-20 sm:w-24 sm:h-24 shrink-0 border-2 border-dashed border-slate-200 rounded-xl flex items-center justify-center overflow-hidden bg-slate-50 relative">
+                        {item.image ? (
+                          <img src={item.image} alt="Produto" className="w-full h-full object-cover" />
+                        ) : (
+                          <ImageIcon className="text-slate-300 w-5 h-5 sm:w-6 sm:h-6" />
+                        )}
+                        <input type="file" accept="image/*" onChange={(e) => handleImageUpload(item.id, e)} className="absolute inset-0 opacity-0 cursor-pointer no-print" />
+                      </div>
+                      
+                      <div className="flex-1 sm:hidden text-left h-20">
+                        <textarea 
+                          value={item.description} 
+                          onChange={(e) => updateItem(item.id, 'description', e.target.value)} 
+                          className="w-full h-full bg-transparent p-0 border-none text-[11px] font-bold text-slate-800 leading-tight resize-none outline-none" 
+                          placeholder="Descrição do item..." 
+                        />
+                      </div>
                     </div>
-                    <div className="flex-1 flex flex-col justify-between h-24 text-left">
-                      <textarea 
-                        value={item.description} 
-                        onChange={(e) => updateItem(item.id, 'description', e.target.value)} 
-                        className="w-full bg-transparent p-0 border-none text-[10px] font-bold text-slate-800 leading-tight resize-none outline-none" 
-                        placeholder="Descrição do item..." 
-                      />
-                      <div className="flex items-end justify-between">
-                        <div className="flex gap-4">
+
+                    <div className="flex-1 flex flex-col justify-between min-h-[50px] sm:h-24 text-left w-full">
+                      <div className="hidden sm:block">
+                        <textarea 
+                          value={item.description} 
+                          onChange={(e) => updateItem(item.id, 'description', e.target.value)} 
+                          className="w-full bg-transparent p-0 border-none text-[10px] font-bold text-slate-800 leading-tight resize-none outline-none h-12" 
+                          placeholder="Descrição do item..." 
+                        />
+                      </div>
+                      
+                      <div className="flex items-center justify-between gap-4 mt-2 sm:mt-0 pt-2 sm:pt-0 border-t border-dashed border-slate-100 sm:border-none w-full">
+                        <div className="flex items-center gap-3">
                           <div className="w-12">
                             <label className="block text-[7px] font-black text-slate-400 uppercase mb-0.5">Qtd</label>
-                            <input type="number" min="1" value={item.quantity} onChange={(e) => updateItem(item.id, 'quantity', Number(e.target.value))} className="w-full bg-slate-50 border border-slate-100 rounded p-0.5 text-[11px] font-black text-center" />
+                            <input type="number" min="1" value={item.quantity} onChange={(e) => updateItem(item.id, 'quantity', Number(e.target.value))} className="w-full bg-slate-50 border border-slate-100 rounded h-7 p-0.5 text-[11px] font-black text-center outline-none focus:bg-slate-100" />
                           </div>
-                          <div className="w-28">
+                          <div className="w-24 sm:w-28">
                             <label className="block text-[7px] font-black text-slate-400 uppercase mb-0.5">Valor Unitário</label>
-                            <div className="flex items-center bg-slate-50 rounded px-1.5 border border-slate-100 h-8">
+                            <div className="flex items-center bg-slate-50 rounded px-1.5 border border-slate-100 h-7">
                               <span className="text-[8px] text-slate-400 font-black mr-1">R$</span>
                               <input type="number" step="0.01" value={item.unitPrice} onChange={(e) => updateItem(item.id, 'unitPrice', Number(e.target.value))} className="w-full bg-transparent border-none py-1 text-[11px] font-black outline-none" />
                             </div>
                           </div>
                         </div>
-                        <div className="text-right">
+                        <div className="text-right shrink-0">
                           <label className="block text-[7px] font-black text-slate-400 uppercase mb-0.5">Total Item</label>
                           <span className="text-[12px] font-black text-slate-900">{formatCurrency(item.quantity * item.unitPrice)}</span>
                         </div>
@@ -585,12 +601,12 @@ const App: React.FC = () => {
             </section>
 
             {/* RODAPÉ */}
-            <section className="p-4 md:p-6 bg-slate-50 border-t border-slate-100 flex flex-row items-start gap-6 footer-row">
+            <section className="p-4 md:p-6 bg-slate-50 border-t border-slate-100 flex flex-col sm:flex-row items-stretch sm:items-start gap-4 sm:gap-6 footer-row">
               <div className="flex-1">
                 <h3 className="text-[9px] font-black uppercase tracking-widest text-slate-500 mb-2">Observações Importantes</h3>
                 <textarea rows={5} value={observations} onChange={(e) => setObservations(e.target.value)} className="w-full bg-white p-3 border border-slate-200 rounded-xl text-[10px] text-slate-600 outline-none leading-relaxed resize-none shadow-sm h-full min-h-[100px]" />
               </div>
-              <div className="w-64 shrink-0">
+              <div className="w-full sm:w-64 shrink-0">
                 <div className="bg-[#002137] p-4 rounded-2xl shadow-xl relative overflow-hidden border border-white/5">
                   <span className="text-blue-300 text-[8px] font-black uppercase tracking-widest mb-1 block leading-none uppercase">VALOR TOTAL PROJETO</span>
                   <span className="text-white text-2xl font-black tracking-tighter block leading-none py-1">{formatCurrency(total)}</span>
