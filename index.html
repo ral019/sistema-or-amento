@@ -147,9 +147,6 @@
             .sm\:hidden {
                 display: none !important;
             }
-            .hidden {
-                display: block !important;
-            }
             .sm\:block {
                 display: block !important;
             }
@@ -178,6 +175,18 @@
                 padding: 0 !important;
                 box-shadow: none !important;
                 color: #1e293b;
+            }
+
+            /* Garantia absoluta de exclusão para elementos no-print */
+            .no-print, [no-print], .no-print * {
+                display: none !important;
+                visibility: hidden !important;
+                opacity: 0 !important;
+                height: 0 !important;
+                width: 0 !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                border: none !important;
             }
         }
     </style>
