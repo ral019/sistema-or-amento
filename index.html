@@ -51,9 +51,17 @@
                 display: grid !important;
                 grid-template-columns: repeat(4, 1fr) !important;
                 gap: 0.75rem !important;
+                width: 100% !important;
             }
             .client-grid > .col-span-2 {
                 grid-column: span 2 / span 2 !important;
+            }
+
+            /* Forçar Grid de 2 Colunas no Info Adicional */
+            #quote-container section.grid {
+                display: grid !important;
+                grid-template-columns: repeat(2, 1fr) !important;
+                gap: 1rem !important;
             }
 
             /* Estabilização do Cabeçalho */
@@ -66,13 +74,35 @@
                 padding: 20px !important;
                 background-color: #002137 !important;
             }
+            header > div:first-child {
+                flex: 1 !important;
+                width: auto !important;
+                max-width: 65% !important;
+                display: flex !important;
+                flex-direction: row !important;
+                align-items: center !important;
+            }
             .header-right-side {
                 display: flex !important;
                 flex-direction: column !important;
                 align-items: flex-end !important;
+                justify-content: center !important;
                 text-align: right !important;
+                width: auto !important;
                 min-width: 180px !important;
+                max-width: 35% !important;
                 border-left: 1px solid rgba(255,255,255,0.2) !important;
+                border-top: none !important;
+                margin-top: 0 !important;
+                padding-top: 0 !important;
+                padding-left: 15px !important;
+            }
+            .header-right-side > div:last-child {
+                display: flex !important;
+                flex-direction: column !important;
+                align-items: flex-end !important;
+                width: 100% !important;
+                max-width: none !important;
             }
 
             /* CORREÇÃO CRÍTICA: Manter texto branco no cabeçalho escuro */
@@ -84,19 +114,62 @@
                 font-weight: 900 !important;
                 text-align: right !important;
                 background: transparent !important;
+                max-width: 120px !important;
+                width: 120px !important;
+                border: none !important;
             }
 
             /* Ajuste de Itens e Rodapé */
             .item-row {
                 display: flex !important;
                 flex-direction: row !important;
+                align-items: flex-start !important;
+                gap: 1rem !important;
                 border-bottom: 1px solid #f1f5f9 !important;
-                padding-bottom: 10px !important;
+                padding-bottom: 15px !important;
+                width: 100% !important;
             }
+            .item-row > div:first-of-type {
+                width: auto !important;
+                display: flex !important;
+                flex-direction: row !important;
+                align-items: center !important;
+            }
+            .item-row > div:last-of-type {
+                flex: 1 !important;
+                width: auto !important;
+                display: flex !important;
+                flex-direction: column !important;
+                justify-content: space-between !important;
+            }
+
+            /* Correções de classes responsivas no print (forçar layout desktop) */
+            .sm\:hidden {
+                display: none !important;
+            }
+            .hidden {
+                display: block !important;
+            }
+            .sm\:block {
+                display: block !important;
+            }
+            .sm\:inline {
+                display: inline !important;
+            }
+
             .footer-row {
                 display: flex !important;
                 flex-direction: row !important;
                 gap: 20px !important;
+                align-items: stretch !important;
+                width: 100% !important;
+            }
+            .footer-row > div:first-child {
+                flex: 1 !important;
+            }
+            .footer-row > div:last-child {
+                width: 250px !important;
+                flex-shrink: 0 !important;
             }
 
             input, textarea {
