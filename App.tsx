@@ -97,6 +97,22 @@ const App: React.FC = () => {
   const [savedQuotes, setSavedQuotes] = useState<SavedQuote[]>([]);
   const [isSharing, setIsSharing] = useState(false);
 
+  // Estado para toast de salvar com sucesso
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
+
+  const triggerToast = (message: string, type: 'success' | 'error' | 'info' = 'success') => {
+    setToast({ message, type });
+  };
+
+  useEffect(() => {
+    if (toast) {
+      const timer = setTimeout(() => {
+        setToast(null);
+      }, 4000);
+      return () => clearTimeout(timer);
+    }
+  }, [toast]);
+
   useEffect(() => {
     const data = localStorage.getItem('casa_dos_vidros_db');
     if (data) setSavedQuotes(JSON.parse(data));
@@ -141,16 +157,48 @@ const App: React.FC = () => {
 
   const formatCurrency = (value: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
 
-  const saveQuote = () => {
-    if (!clientData.name || !clientData.quoteNumber) {
-      alert("Por favor, preencha pelo menos o Nome do Cliente e o Nº do Orçamento.");
-      return;
+  // Nova função unificada para salvamento com feedback e preenchimento inteligente em caso de salvamento automático
+  const saveQuote = (isAutoSave: boolean = false) => {
+    let finalClientName = clientData.name.trim();
+    let finalQuoteNumber = clientData.quoteNumber.trim();
+    
+    if (!finalClientName) {
+      if (isAutoSave) {
+        finalClientName = "Cliente Avulso";
+      } else {
+        triggerToast("Por favor, preencha pelo menos o Nome do Cliente.", "error");
+        return false;
+      }
+    }
+    
+    if (!finalQuoteNumber) {
+      if (isAutoSave) {
+        // Gera um número inteligente de contingência para salvar de qualquer jeito
+        const now = new Date();
+        const dateStr = now.toISOString().slice(2, 10).replace(/[-:]/g, '');
+        const randStr = Math.floor(100 + Math.random() * 900);
+        finalQuoteNumber = `AUTO-${dateStr}-${randStr}`;
+      } else {
+        triggerToast("Por favor, preencha o Número do Orçamento.", "error");
+        return false;
+      }
+    }
+
+    const updatedClientData = {
+      ...clientData,
+      name: finalClientName,
+      quoteNumber: finalQuoteNumber
+    };
+
+    // Caso mudou, atualiza na tela para manter coerência visual
+    if (clientData.name !== finalClientName || clientData.quoteNumber !== finalQuoteNumber) {
+      setClientData(updatedClientData);
     }
 
     const newSavedQuote: SavedQuote = {
       id: Math.random().toString(36).substr(2, 9),
       timestamp: Date.now(),
-      clientData,
+      clientData: updatedClientData,
       items,
       budgetInfo,
       observations
@@ -159,7 +207,21 @@ const App: React.FC = () => {
     const updated = [newSavedQuote, ...savedQuotes];
     setSavedQuotes(updated);
     localStorage.setItem('casa_dos_vidros_db', JSON.stringify(updated));
-    alert("Orçamento salvo com sucesso!");
+    
+    if (isAutoSave) {
+      triggerToast(`Orçamento Nº ${finalQuoteNumber} salvo automaticamente no Banco!`, "success");
+    } else {
+      triggerToast(`Orçamento Nº ${finalQuoteNumber} salvo com sucesso!`, "success");
+    }
+    return true;
+  };
+
+  const handlePrintWithAutoSave = () => {
+    // Salva automaticamente no banco de dados antes de abrir para impressão
+    saveQuote(true);
+    setTimeout(() => {
+      window.print();
+    }, 450);
   };
 
   const loadQuote = (quote: SavedQuote) => {
@@ -191,6 +253,9 @@ const App: React.FC = () => {
   };
 
   const handleShareQuoteAsImage = async () => {
+    // Salva automaticamente no banco antes de expor imagem
+    saveQuote(true);
+
     const element = containerRef.current;
     if (!element) return;
     setIsSharing(true);
@@ -203,6 +268,9 @@ const App: React.FC = () => {
         backgroundColor: '#ffffff',
         logging: false,
         onclone: (clonedDoc: Document) => {
+          // Ativa a classe force-print-layout para usar os estilos idênticos ao PDF em offscreen rendering 
+          clonedDoc.body.classList.add('force-print-layout');
+          
           const noPrint = clonedDoc.querySelectorAll('.no-print');
           noPrint.forEach(el => (el as HTMLElement).style.display = 'none');
           const container = clonedDoc.getElementById('quote-container');
@@ -227,6 +295,7 @@ const App: React.FC = () => {
       });
       canvas.toBlob(async (blob: Blob | null) => {
         if (!blob) throw new Error("Falha ao gerar imagem");
+        const clientNameNormalized = clientData.name.trim() || 'Avulso';
         const fileName = `Orcamento_${clientData.quoteNumber || 'Novo'}.png`;
         const file = new File([blob], fileName, { type: 'image/png' });
         if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
@@ -242,7 +311,7 @@ const App: React.FC = () => {
       }, 'image/png');
     } catch (err) {
       console.error(err);
-      alert("Erro ao capturar orçamento.");
+      triggerToast("Erro ao capturar orçamento.", "error");
     } finally {
       setIsSharing(false);
     }
@@ -250,6 +319,38 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen pt-4 pb-24 md:py-8 px-2 sm:px-4 bg-[#f1f5f9]">
+      {/* TOAST NOTIFICATION PREMIUM */}
+      {toast && (
+        <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[200] w-[95%] max-w-md animate-in fade-in slide-in-from-top-6 duration-300 no-print">
+          <div className="p-4 rounded-2xl bg-[#002137] text-white border border-blue-500 shadow-[0_10px_35px_rgba(0,0,0,0.3)] flex items-center gap-3.5">
+            <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
+              toast.type === 'success' ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30' :
+              toast.type === 'error' ? 'bg-red-500/15 text-red-100 border border-red-500/30' :
+              'bg-blue-500/15 text-blue-400 border border-blue-500/30'
+            }`}>
+              {toast.type === 'success' ? (
+                <Save className="w-4 h-4 text-[#25D366]" />
+              ) : toast.type === 'error' ? (
+                <X className="w-4 h-4 text-red-400" />
+              ) : (
+                <Info className="w-4 h-4 text-blue-400" />
+              )}
+            </div>
+            
+            <div className="flex-1 text-left">
+              <p className="text-[10px] font-black uppercase tracking-widest text-[#25D366] leading-none mb-1">
+                {toast.type === 'success' ? 'Salvo no Banco!' : toast.type === 'error' ? 'Atenção!' : 'Aviso'}
+              </p>
+              <p className="text-[11px] font-extrabold text-slate-100 leading-tight">{toast.message}</p>
+            </div>
+            
+            <button onClick={() => setToast(null)} className="text-slate-400 hover:text-white transition-colors p-1.5 rounded-full hover:bg-white/10 shrink-0">
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* MODAL INSTRUTIVO DE INSTALAÇÃO NO ANDROID */}
       {showInstallModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4 animate-in fade-in duration-300">
@@ -410,7 +511,7 @@ const App: React.FC = () => {
                 <button onClick={newQuote} className="flex items-center gap-2 bg-white text-slate-700 px-4 py-2 rounded-xl shadow-sm border border-slate-200 font-bold text-[10px] uppercase hover:bg-slate-50 transition-all">
                   <RotateCcw className="w-4 h-4 text-blue-500" /> Limpar
                 </button>
-                <button onClick={saveQuote} className="flex items-center gap-2 bg-[#002137] text-white px-4 py-2 rounded-xl shadow-md font-bold text-[10px] uppercase hover:bg-black transition-all">
+                <button onClick={() => saveQuote(false)} className="flex items-center gap-2 bg-[#002137] text-white px-4 py-2 rounded-xl shadow-md font-bold text-[10px] uppercase hover:bg-black transition-all">
                   <Save className="w-4 h-4 text-blue-400" /> Salvar no Banco
                 </button>
             </div>
@@ -625,7 +726,7 @@ const App: React.FC = () => {
 
           {/* AÇÕES FIXAS ABAIXO DO EDITOR */}
           <div className="max-w-4xl mx-auto mt-6 flex flex-row gap-4 justify-center no-print px-4 pb-12">
-            <button onClick={() => window.print()} className="flex-1 max-w-[220px] flex items-center justify-center gap-2 bg-[#002137] text-white px-5 py-3.5 rounded-xl shadow-lg font-black uppercase text-[10px] active:scale-95 transition-all hover:bg-black">
+            <button onClick={handlePrintWithAutoSave} className="flex-1 max-w-[220px] flex items-center justify-center gap-2 bg-[#002137] text-white px-5 py-3.5 rounded-xl shadow-lg font-black uppercase text-[10px] active:scale-95 transition-all hover:bg-black">
               <Printer className="w-4 h-4" /> Gerar PDF / Imprimir
             </button>
             <button onClick={handleShareQuoteAsImage} disabled={isSharing} className={`flex-1 max-w-[220px] flex items-center justify-center gap-2 ${isSharing ? 'bg-slate-400' : 'bg-[#25D366] hover:bg-[#128C7E]'} text-white px-5 py-3.5 rounded-xl shadow-lg font-black uppercase text-[10px] active:scale-95 transition-all`}>

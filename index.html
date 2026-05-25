@@ -189,6 +189,148 @@
                 border: none !important;
             }
         }
+
+        /* COMPARTILHAMENTO DE ESTILOS COM A CAPTURA DE IMAGEM (.force-print-layout) */
+        .force-print-layout .no-print {
+            display: none !important;
+        }
+        .force-print-layout #quote-container {
+            box-shadow: none !important;
+            border: 1px solid #e2e8f0 !important;
+            width: 100% !important;
+            max-width: 100% !important;
+            margin: 0 !important;
+            border-radius: 0 !important;
+            display: block !important;
+            background-color: white !important;
+        }
+        .force-print-layout .client-grid {
+            display: grid !important;
+            grid-template-columns: repeat(4, 1fr) !important;
+            gap: 0.75rem !important;
+            width: 100% !important;
+        }
+        .force-print-layout .client-grid > .col-span-2 {
+            grid-column: span 2 / span 2 !important;
+        }
+        .force-print-layout #quote-container section.grid {
+            display: grid !important;
+            grid-template-columns: repeat(2, 1fr) !important;
+            gap: 1rem !important;
+        }
+        .force-print-layout header {
+            display: flex !important;
+            flex-direction: row !important;
+            align-items: center !important;
+            justify-content: space-between !important;
+            width: 100% !important;
+            padding: 20px !important;
+            background-color: #002137 !important;
+        }
+        .force-print-layout header > div:first-child {
+            flex: 1 !important;
+            width: auto !important;
+            max-width: 65% !important;
+            display: flex !important;
+            flex-direction: row !important;
+            align-items: center !important;
+        }
+        .force-print-layout .header-right-side {
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: flex-end !important;
+            justify-content: center !important;
+            text-align: right !important;
+            width: auto !important;
+            min-width: 180px !important;
+            max-width: 35% !important;
+            border-left: 1px solid rgba(255,255,255,0.2) !important;
+            border-top: none !important;
+            margin-top: 0 !important;
+            padding-top: 0 !important;
+            padding-left: 15px !important;
+        }
+        .force-print-layout .header-right-side > div:last-child {
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: flex-end !important;
+            width: 100% !important;
+            max-width: none !important;
+        }
+        .force-print-layout header label {
+            color: rgba(255, 255, 255, 0.6) !important;
+        }
+        .force-print-layout header input {
+            color: white !important;
+            font-weight: 900 !important;
+            text-align: right !important;
+            background: transparent !important;
+            max-width: 120px !important;
+            width: 120px !important;
+            border: none !important;
+        }
+        .force-print-layout .item-row {
+            display: flex !important;
+            flex-direction: row !important;
+            align-items: flex-start !important;
+            gap: 1rem !important;
+            border-bottom: 1px solid #f1f5f9 !important;
+            padding-bottom: 15px !important;
+            width: 100% !important;
+        }
+        .force-print-layout .item-row > div:first-of-type {
+            width: auto !important;
+            display: flex !important;
+            flex-direction: row !important;
+            align-items: center !important;
+        }
+        .force-print-layout .item-row > div:last-of-type {
+            flex: 1 !important;
+            width: auto !important;
+            display: flex !important;
+            flex-direction: column !important;
+            justify-content: space-between !important;
+        }
+        .force-print-layout .sm\:hidden {
+            display: none !important;
+        }
+        .force-print-layout .sm\:block {
+            display: block !important;
+        }
+        .force-print-layout .sm\:inline {
+            display: inline !important;
+        }
+        .force-print-layout .footer-row {
+            display: flex !important;
+            flex-direction: row !important;
+            gap: 20px !important;
+            align-items: stretch !important;
+            width: 100% !important;
+        }
+        .force-print-layout .footer-row > div:first-child {
+            flex: 1 !important;
+        }
+        .force-print-layout .footer-row > div:last-child {
+            width: 250px !important;
+            flex-shrink: 0 !important;
+        }
+        .force-print-layout input, .force-print-layout textarea {
+            border: none !important;
+            background: transparent !important;
+            padding: 0 !important;
+            box-shadow: none !important;
+            color: #1e293b;
+        }
+        .force-print-layout .no-print, .force-print-layout [no-print], .force-print-layout .no-print * {
+            display: none !important;
+            visibility: hidden !important;
+            opacity: 0 !important;
+            height: 0 !important;
+            width: 0 !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            border: none !important;
+        }
     </style>
 <script type="importmap">
 {
