@@ -1,5 +1,6 @@
 
 import React, { useState, useMemo, useRef, useEffect } from 'react';
+import html2canvas from 'html2canvas';
 import { Plus, Trash2, Printer, Image as ImageIcon, User, FileText, Info, MessageCircle, Hash, Share2, Save, History, RotateCcw, Download, Phone, Search, X, LayoutDashboard } from 'lucide-react';
 import { ClientData, QuoteItem, SavedQuote } from './types';
 import { COMPANY_INFO, DEFAULT_OBSERVATIONS } from './constants';
@@ -159,8 +160,10 @@ const App: React.FC = () => {
 
   // Nova função unificada para salvamento com feedback e preenchimento inteligente em caso de salvamento automático
   const saveQuote = (isAutoSave: boolean = false) => {
-    let finalClientName = clientData.name.trim();
-    let finalQuoteNumber = clientData.quoteNumber.trim();
+    const rawName = clientData.name || '';
+    const rawQuoteNumber = clientData.quoteNumber || '';
+    let finalClientName = rawName.trim();
+    let finalQuoteNumber = rawQuoteNumber.trim();
     
     if (!finalClientName) {
       if (isAutoSave) {
@@ -206,29 +209,55 @@ const App: React.FC = () => {
 
     const updated = [newSavedQuote, ...savedQuotes];
     setSavedQuotes(updated);
-    localStorage.setItem('casa_dos_vidros_db', JSON.stringify(updated));
-    
-    if (isAutoSave) {
-      triggerToast(`Orçamento Nº ${finalQuoteNumber} salvo automaticamente no Banco!`, "success");
-    } else {
-      triggerToast(`Orçamento Nº ${finalQuoteNumber} salvo com sucesso!`, "success");
+
+    try {
+      localStorage.setItem('casa_dos_vidros_db', JSON.stringify(updated));
+      if (isAutoSave) {
+        triggerToast(`Orçamento Nº ${finalQuoteNumber} salvo automaticamente no Banco!`, "success");
+      } else {
+        triggerToast(`Orçamento Nº ${finalQuoteNumber} salvo no Banco de Dados!`, "success");
+      }
+    } catch (storageError) {
+      console.warn("Storage quota exceeded! Executing automatic self-healing photo clean...", storageError);
+      try {
+        // Pruning method: keep images only for the 3 most recent quotes. Remove images for older ones to free up space, maintaining complete budget text data.
+        const lighterQuotes = updated.map((q, index) => {
+          if (index > 2) {
+            return {
+              ...q,
+              items: q.items.map(i => ({ ...i, image: undefined }))
+            };
+          }
+          return q;
+        });
+        localStorage.setItem('casa_dos_vidros_db', JSON.stringify(lighterQuotes));
+        setSavedQuotes(lighterQuotes);
+        triggerToast(`Otimizado! Orçamento Nº ${finalQuoteNumber} salvo (banco otimizado sem fotos antigas).`, "success");
+      } catch (innerError) {
+        console.error("Critical storage failure:", innerError);
+        triggerToast("Memória do navegador cheia! Orçamento mantido nesta sessão.", "info");
+      }
     }
     return true;
   };
 
   const handlePrintWithAutoSave = () => {
-    // Salva automaticamente no banco de dados antes de abrir para impressão
-    saveQuote(true);
+    // Salva automaticamente no banco de dados antes de abrir para impressão com barreira contra erros
+    try {
+      saveQuote(true);
+    } catch (e) {
+      console.error("Auto-save failed before print:", e);
+    }
     setTimeout(() => {
       window.print();
-    }, 450);
+    }, 250);
   };
 
   const loadQuote = (quote: SavedQuote) => {
-    setClientData(quote.clientData);
-    setItems(quote.items);
-    setBudgetInfo(quote.budgetInfo);
-    setObservations(quote.observations);
+    setClientData(quote.clientData || { name: '', address: '', city: 'LIMEIRA', uf: 'SP', phone: '', cep: '', cpfCnpj: '', clientPhone: '', email: '', obs: '', date: today, quoteNumber: '' });
+    setItems(quote.items || [{ id: '1', description: '', quantity: 1, unitPrice: 0 }]);
+    setBudgetInfo(quote.budgetInfo || { color: 'Vidro incolor, alumínio branco', info: '' });
+    setObservations(quote.observations || DEFAULT_OBSERVATIONS);
     setActiveTab('editor');
     window.scrollTo(0, 0);
   };
@@ -238,7 +267,12 @@ const App: React.FC = () => {
     if (confirm("Excluir este orçamento permanentemente?")) {
       const updated = savedQuotes.filter(q => q.id !== id);
       setSavedQuotes(updated);
-      localStorage.setItem('casa_dos_vidros_db', JSON.stringify(updated));
+      try {
+        localStorage.setItem('casa_dos_vidros_db', JSON.stringify(updated));
+        triggerToast("Orçamento excluído.", "info");
+      } catch (err) {
+        console.error(err);
+      }
     }
   };
 
@@ -253,53 +287,98 @@ const App: React.FC = () => {
   };
 
   const handleShareQuoteAsImage = async () => {
-    // Salva automaticamente no banco antes de expor imagem
-    saveQuote(true);
+    // Salva automaticamente no banco com try-catch guard
+    try {
+      saveQuote(true);
+    } catch (e) {
+      console.error("Auto-save failed before image share:", e);
+    }
 
     const element = containerRef.current;
     if (!element) return;
     setIsSharing(true);
     try {
       window.scrollTo(0, 0);
-      const canvas = await (window as any).html2canvas(element, {
-        scale: 2.5,
+      const canvas = await html2canvas(element, {
+        scale: 2.2,
         useCORS: true,
         allowTaint: true,
         backgroundColor: '#ffffff',
         logging: false,
         onclone: (clonedDoc: Document) => {
-          // Ativa a classe force-print-layout para usar os estilos idênticos ao PDF em offscreen rendering 
-          clonedDoc.body.classList.add('force-print-layout');
-          
-          const noPrint = clonedDoc.querySelectorAll('.no-print');
-          noPrint.forEach(el => (el as HTMLElement).style.display = 'none');
           const container = clonedDoc.getElementById('quote-container');
           if (container) {
             container.style.boxShadow = 'none';
-            container.style.border = '1px solid #e2e8f0';
+            container.style.border = '1px solid #cbd5e1';
             container.style.borderRadius = '0';
-            container.style.width = '1000px'; 
+            container.style.width = '960px'; 
+            
+            // Ativa cabeçalho escuro impecável no clone de imagem
+            const header = container.querySelector('header') as HTMLElement;
+            if (header) {
+              header.style.backgroundColor = '#002137';
+              header.style.color = '#ffffff';
+              header.style.display = 'flex';
+              header.style.flexDirection = 'row';
+              header.style.alignItems = 'center';
+              header.style.justifyContent = 'space-between';
+              header.style.padding = '24px';
+              
+              const hRight = header.querySelector('.header-right-side') as HTMLElement;
+              if (hRight) {
+                hRight.style.borderLeft = '1px solid rgba(255,255,255,0.2)';
+                hRight.style.paddingLeft = '20px';
+                hRight.style.display = 'flex';
+                hRight.style.flexDirection = 'column';
+                hRight.style.alignItems = 'flex-end';
+              }
+            }
+
+            // Ocultar botões ou elementos indesejáveis na exportação
+            const noPrint = container.querySelectorAll('.no-print');
+            noPrint.forEach(el => (el as HTMLElement).style.setProperty('display', 'none', 'important'));
+
+            // Ocultar imagens vazias (que possuem ícone de placeholder) para o texto expandir majestosamente
+            const emptyImgs = container.querySelectorAll('.item-row-img-col .lucide-image-icon, .item-row-img-col .lucide-image');
+            emptyImgs.forEach(icon => {
+              const wrapperImg = icon.closest('.item-row-img-col') as HTMLElement;
+              if (wrapperImg) {
+                wrapperImg.style.setProperty('display', 'none', 'important');
+              }
+            });
+
+            // Strip styling para que todos os inputs de texto apareçam como texto plano perfeito, limpo e sem caixas de formulário na imagem
+            const inputs = container.querySelectorAll('input, textarea');
+            inputs.forEach(input => {
+              const htmlInput = input as HTMLInputElement | HTMLTextAreaElement;
+              htmlInput.style.backgroundColor = 'transparent';
+              htmlInput.style.border = 'none';
+              htmlInput.style.boxShadow = 'none';
+              htmlInput.style.padding = '0';
+              htmlInput.style.outline = 'none';
+              
+              // Se estiver no cabeçalho, a cor do texto permanece branca
+              if (htmlInput.closest('header')) {
+                htmlInput.style.color = '#ffffff';
+                htmlInput.style.textAlign = 'right';
+                htmlInput.style.fontWeight = '900';
+              } else {
+                htmlInput.style.color = '#1e293b';
+                htmlInput.style.fontWeight = '700';
+              }
+            });
           }
-          
-          // Forçar estilos de cabeçalho no clone
-          const header = clonedDoc.querySelector('header') as HTMLElement;
-          if (header) {
-            header.style.backgroundColor = '#002137';
-          }
-          const inputs = clonedDoc.querySelectorAll('header input');
-          inputs.forEach(input => {
-            (input as HTMLInputElement).style.color = '#ffffff';
-            (input as HTMLInputElement).style.textAlign = 'right';
-          });
         }
       });
+      
       canvas.toBlob(async (blob: Blob | null) => {
-        if (!blob) throw new Error("Falha ao gerar imagem");
-        const clientNameNormalized = clientData.name.trim() || 'Avulso';
+        if (!blob) throw new Error("Falha ao gerar imagem blob");
+        const clientNameNormalized = (clientData.name || '').trim() || 'Avulso';
         const fileName = `Orcamento_${clientData.quoteNumber || 'Novo'}.png`;
         const file = new File([blob], fileName, { type: 'image/png' });
+        
         if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
-          await navigator.share({ files: [file], title: `Orçamento ${clientData.quoteNumber}` });
+          await navigator.share({ files: [file], title: `Orçamento Casa dos Vidros` });
         } else {
           const url = URL.createObjectURL(blob);
           const link = document.createElement('a');
@@ -307,11 +386,12 @@ const App: React.FC = () => {
           link.download = fileName;
           link.click();
           URL.revokeObjectURL(url);
+          triggerToast("Orçamento capturado e salvo na galeria!", "success");
         }
       }, 'image/png');
     } catch (err) {
       console.error(err);
-      triggerToast("Erro ao capturar orçamento.", "error");
+      triggerToast("Erro ao capturar orçamento como imagem.", "error");
     } finally {
       setIsSharing(false);
     }
@@ -319,29 +399,33 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen pt-4 pb-24 md:py-8 px-2 sm:px-4 bg-[#f1f5f9]">
-      {/* TOAST NOTIFICATION PREMIUM */}
+      {/* TOAST NOTIFICATION PREMIUM DE ALTA VISIBILIDADE */}
       {toast && (
-        <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[200] w-[95%] max-w-md animate-in fade-in slide-in-from-top-6 duration-300 no-print">
-          <div className="p-4 rounded-2xl bg-[#002137] text-white border border-blue-500 shadow-[0_10px_35px_rgba(0,0,0,0.3)] flex items-center gap-3.5">
+        <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[300] w-[92%] max-w-md no-print shadow-[0_15px_45px_rgba(0,0,0,0.4)]">
+          <div className={`p-4 rounded-2xl bg-[#002137] text-white border-2 flex items-center gap-3.5 ${
+            toast.type === 'success' ? 'border-[#25D366]' :
+            toast.type === 'error' ? 'border-red-500' :
+            'border-blue-400'
+          }`}>
             <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
-              toast.type === 'success' ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30' :
-              toast.type === 'error' ? 'bg-red-500/15 text-red-100 border border-red-500/30' :
-              'bg-blue-500/15 text-blue-400 border border-blue-500/30'
+              toast.type === 'success' ? 'bg-[#25D366]/15 text-[#25D366]' :
+              toast.type === 'error' ? 'bg-red-500/15 text-red-400' :
+              'bg-blue-500/15 text-blue-400'
             }`}>
               {toast.type === 'success' ? (
                 <Save className="w-4 h-4 text-[#25D366]" />
               ) : toast.type === 'error' ? (
-                <X className="w-4 h-4 text-red-400" />
+                <X className="w-4 h-4 text-red-500" />
               ) : (
                 <Info className="w-4 h-4 text-blue-400" />
               )}
             </div>
             
             <div className="flex-1 text-left">
-              <p className="text-[10px] font-black uppercase tracking-widest text-[#25D366] leading-none mb-1">
-                {toast.type === 'success' ? 'Salvo no Banco!' : toast.type === 'error' ? 'Atenção!' : 'Aviso'}
+              <p className="text-[10px] font-black uppercase tracking-widest text-slate-300 leading-none mb-1">
+                {toast.type === 'success' ? 'Confirmação' : toast.type === 'error' ? 'Atenção!' : 'Aviso'}
               </p>
-              <p className="text-[11px] font-extrabold text-slate-100 leading-tight">{toast.message}</p>
+              <p className="text-[11px] font-extrabold text-white leading-tight">{toast.message}</p>
             </div>
             
             <button onClick={() => setToast(null)} className="text-slate-400 hover:text-white transition-colors p-1.5 rounded-full hover:bg-white/10 shrink-0">
@@ -641,42 +725,33 @@ const App: React.FC = () => {
 
               <div className="space-y-4">
                 {items.map((item) => (
-                  <div key={item.id} className="item-row flex flex-col sm:flex-row items-stretch sm:items-start gap-4 border border-slate-100 rounded-xl p-3 bg-white relative group">
+                  <div key={item.id} className="item-row flex flex-row items-start gap-4 border border-slate-100 rounded-xl p-3 bg-white relative group">
                     <button onClick={() => removeItem(item.id)} className="absolute -top-2 -right-2 no-print text-white bg-red-500 p-1.5 rounded-full shadow-lg opacity-100 sm:opacity-0 group-hover:opacity-100 z-10 transition-opacity">
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
                     
-                    <div className="flex flex-row items-center gap-3 w-full sm:w-auto shrink-0">
-                      <div className="w-20 h-20 sm:w-24 sm:h-24 shrink-0 border-2 border-dashed border-slate-200 rounded-xl flex items-center justify-center overflow-hidden bg-slate-50 relative">
-                        {item.image ? (
-                          <img src={item.image} alt="Produto" className="w-full h-full object-cover" />
-                        ) : (
-                          <ImageIcon className="text-slate-300 w-5 h-5 sm:w-6 sm:h-6" />
-                        )}
-                        <input type="file" accept="image/*" onChange={(e) => handleImageUpload(item.id, e)} className="absolute inset-0 opacity-0 cursor-pointer no-print" />
-                      </div>
-                      
-                      <div className="flex-1 sm:hidden text-left h-20">
-                        <textarea 
-                          value={item.description} 
-                          onChange={(e) => updateItem(item.id, 'description', e.target.value)} 
-                          className="w-full h-full bg-transparent p-0 border-none text-[11px] font-bold text-slate-800 leading-tight resize-none outline-none" 
-                          placeholder="Descrição do item..." 
-                        />
-                      </div>
+                    {/* Imagem do Item ou Placeholder */}
+                    <div className={`item-row-img-col border-2 border-dashed border-slate-200 rounded-xl flex items-center justify-center overflow-hidden bg-slate-50 relative shrink-0 ${!item.image ? 'print:hidden' : ''}`}>
+                      {item.image ? (
+                        <img src={item.image} alt="Produto" className="w-full h-full object-cover" />
+                      ) : (
+                        <ImageIcon className="text-slate-300 w-5 h-5 sm:w-6 sm:h-6 lucide-image-icon" />
+                      )}
+                      <input type="file" accept="image/*" onChange={(e) => handleImageUpload(item.id, e)} className="absolute inset-0 opacity-0 cursor-pointer no-print" />
                     </div>
 
-                    <div className="flex-1 flex flex-col justify-between min-h-[50px] sm:h-24 text-left w-full">
-                      <div className="hidden sm:block">
+                    {/* Detalhes do Item */}
+                    <div className="item-row-details-col flex-1 flex flex-col justify-between text-left h-full min-h-[96px]">
+                      <div className="w-full">
                         <textarea 
-                          value={item.description} 
+                          value={item.description || ''} 
                           onChange={(e) => updateItem(item.id, 'description', e.target.value)} 
-                          className="w-full bg-transparent p-0 border-none text-[10px] font-bold text-slate-800 leading-tight resize-none outline-none h-12" 
+                          className="w-full bg-transparent p-0 border-none text-[10px] sm:text-[11px] font-bold text-slate-800 leading-tight resize-none outline-none h-12" 
                           placeholder="Descrição do item..." 
                         />
                       </div>
                       
-                      <div className="flex items-center justify-between gap-4 mt-2 sm:mt-0 pt-2 sm:pt-0 border-t border-dashed border-slate-100 sm:border-none w-full">
+                      <div className="flex items-center justify-between gap-4 pt-2 border-t border-dashed border-slate-100 w-full mt-2">
                         <div className="flex items-center gap-3">
                           <div className="w-12">
                             <label className="block text-[7px] font-black text-slate-400 uppercase mb-0.5">Qtd</label>

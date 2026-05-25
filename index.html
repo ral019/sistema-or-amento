@@ -124,23 +124,26 @@
                 display: flex !important;
                 flex-direction: row !important;
                 align-items: flex-start !important;
-                gap: 1rem !important;
+                gap: 1.25rem !important;
                 border-bottom: 1px solid #f1f5f9 !important;
                 padding-bottom: 15px !important;
                 width: 100% !important;
             }
-            .item-row > div:first-of-type {
-                width: auto !important;
+            .item-row-img-col {
+                width: 96px !important;
+                height: 96px !important;
+                flex-shrink: 0 !important;
                 display: flex !important;
-                flex-direction: row !important;
                 align-items: center !important;
+                justify-content: center !important;
             }
-            .item-row > div:last-of-type {
+            .item-row-details-col {
                 flex: 1 !important;
                 width: auto !important;
                 display: flex !important;
                 flex-direction: column !important;
                 justify-content: space-between !important;
+                min-height: 96px !important;
             }
 
             /* Correções de classes responsivas no print (forçar layout desktop) */
@@ -273,23 +276,26 @@
             display: flex !important;
             flex-direction: row !important;
             align-items: flex-start !important;
-            gap: 1rem !important;
+            gap: 1.25rem !important;
             border-bottom: 1px solid #f1f5f9 !important;
             padding-bottom: 15px !important;
             width: 100% !important;
         }
-        .force-print-layout .item-row > div:first-of-type {
-            width: auto !important;
+        .force-print-layout .item-row-img-col {
+            width: 96px !important;
+            height: 96px !important;
+            flex-shrink: 0 !important;
             display: flex !important;
-            flex-direction: row !important;
             align-items: center !important;
+            justify-content: center !important;
         }
-        .force-print-layout .item-row > div:last-of-type {
+        .force-print-layout .item-row-details-col {
             flex: 1 !important;
             width: auto !important;
             display: flex !important;
             flex-direction: column !important;
             justify-content: space-between !important;
+            min-height: 96px !important;
         }
         .force-print-layout .sm\:hidden {
             display: none !important;
