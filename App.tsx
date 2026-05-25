@@ -97,6 +97,7 @@ const App: React.FC = () => {
   const [observations, setObservations] = useState(DEFAULT_OBSERVATIONS);
   const [savedQuotes, setSavedQuotes] = useState<SavedQuote[]>([]);
   const [isSharing, setIsSharing] = useState(false);
+  const [currentQuoteId, setCurrentQuoteId] = useState<string | null>(null);
 
   // Estado para toast de salvar com sucesso
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
@@ -198,8 +199,19 @@ const App: React.FC = () => {
       setClientData(updatedClientData);
     }
 
+    // Definir/Limpar título do documento para que o navegador use o mesmo nome elegante na impressão/PDF
+    const clientNameClean = finalClientName.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9-]/g, '_');
+    const quoteNumClean = finalQuoteNumber.replace(/[^a-zA-Z0-9-]/g, '_');
+    document.title = `Orcamento_${quoteNumClean}_${clientNameClean}`;
+
+    let targetId = currentQuoteId;
+    if (!targetId) {
+      targetId = Math.random().toString(36).substr(2, 9);
+      setCurrentQuoteId(targetId);
+    }
+
     const newSavedQuote: SavedQuote = {
-      id: Math.random().toString(36).substr(2, 9),
+      id: targetId,
       timestamp: Date.now(),
       clientData: updatedClientData,
       items,
@@ -207,7 +219,9 @@ const App: React.FC = () => {
       observations
     };
 
-    const updated = [newSavedQuote, ...savedQuotes];
+    // Remove qualquer duplicata anterior com o mesmo ID e coloca o mais recente no topo do array
+    const filtered = savedQuotes.filter(q => q.id !== targetId);
+    const updated = [newSavedQuote, ...filtered];
     setSavedQuotes(updated);
 
     try {
@@ -258,6 +272,15 @@ const App: React.FC = () => {
     setItems(quote.items || [{ id: '1', description: '', quantity: 1, unitPrice: 0 }]);
     setBudgetInfo(quote.budgetInfo || { color: 'Vidro incolor, alumínio branco', info: '' });
     setObservations(quote.observations || DEFAULT_OBSERVATIONS);
+    setCurrentQuoteId(quote.id);
+
+    // Ajusta o título do documento para corresponder ao orçamento atualizado
+    const clientNameStr = quote.clientData?.name || '';
+    const quoteNumStr = quote.clientData?.quoteNumber || '';
+    const clientNameClean = clientNameStr.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9-]/g, '_');
+    const quoteNumClean = quoteNumStr.replace(/[^a-zA-Z0-9-]/g, '_');
+    document.title = `Orcamento_${quoteNumClean || 'Carregado'}_${clientNameClean || 'Avulso'}`;
+
     setActiveTab('editor');
     window.scrollTo(0, 0);
   };
@@ -267,6 +290,10 @@ const App: React.FC = () => {
     if (confirm("Excluir este orçamento permanentemente?")) {
       const updated = savedQuotes.filter(q => q.id !== id);
       setSavedQuotes(updated);
+      if (currentQuoteId === id) {
+        setCurrentQuoteId(null);
+        document.title = "Casa dos Vidros - Orçamentos";
+      }
       try {
         localStorage.setItem('casa_dos_vidros_db', JSON.stringify(updated));
         triggerToast("Orçamento excluído.", "info");
@@ -278,10 +305,25 @@ const App: React.FC = () => {
 
   const newQuote = () => {
     if (confirm("Limpar tudo e iniciar um novo orçamento?")) {
-      setClientData({ ...clientData, name: '', cpfCnpj: '', address: '', email: '', clientPhone: '', quoteNumber: '', date: today });
+      setClientData({
+        name: '',
+        address: '',
+        city: 'LIMEIRA',
+        uf: 'SP',
+        phone: '',
+        cep: '',
+        cpfCnpj: '',
+        clientPhone: '',
+        email: '',
+        obs: '',
+        date: today,
+        quoteNumber: '',
+      });
       setItems([{ id: '1', description: '', quantity: 1, unitPrice: 0 }]);
       setBudgetInfo({ color: 'Vidro incolor, alumínio branco', info: '' });
       setObservations(DEFAULT_OBSERVATIONS);
+      setCurrentQuoteId(null);
+      document.title = "Casa dos Vidros - Orçamentos";
       setActiveTab('editor');
     }
   };
@@ -373,12 +415,22 @@ const App: React.FC = () => {
       
       canvas.toBlob(async (blob: Blob | null) => {
         if (!blob) throw new Error("Falha ao gerar imagem blob");
-        const clientNameNormalized = (clientData.name || '').trim() || 'Avulso';
-        const fileName = `Orcamento_${clientData.quoteNumber || 'Novo'}.png`;
+        
+        const clientNameClean = (clientData.name || 'Avulso').trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9-]/g, '_');
+        const quoteNumClean = (clientData.quoteNumber || 'Novo').trim().replace(/[^a-zA-Z0-9-]/g, '_');
+        const fileName = `Orcamento_${quoteNumClean}_${clientNameClean}.png`;
         const file = new File([blob], fileName, { type: 'image/png' });
         
         if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
-          await navigator.share({ files: [file], title: `Orçamento Casa dos Vidros` });
+          try {
+            await navigator.share({ files: [file], title: `Orçamento Casa dos Vidros` });
+          } catch (shareErr: any) {
+            if (shareErr instanceof Error && shareErr.name === 'AbortError') {
+              console.log("Compartilhamento cancelado pelo usuário.");
+            } else {
+              throw shareErr;
+            }
+          }
         } else {
           const url = URL.createObjectURL(blob);
           const link = document.createElement('a');
@@ -386,12 +438,16 @@ const App: React.FC = () => {
           link.download = fileName;
           link.click();
           URL.revokeObjectURL(url);
-          triggerToast("Orçamento capturado e salvo na galeria!", "success");
+          triggerToast("Orçamento salvo na pasta de Downloads!", "success");
         }
       }, 'image/png');
-    } catch (err) {
-      console.error(err);
-      triggerToast("Erro ao capturar orçamento como imagem.", "error");
+    } catch (err: any) {
+      if (err instanceof Error && err.name === 'AbortError') {
+        console.log("Ação cancelada pelo usuário.");
+      } else {
+        console.error(err);
+        triggerToast("Erro ao capturar orçamento como imagem.", "error");
+      }
     } finally {
       setIsSharing(false);
     }
