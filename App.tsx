@@ -731,7 +731,7 @@ const App: React.FC = () => {
                     </button>
                     
                     {/* Imagem do Item ou Placeholder */}
-                    <div className={`item-row-img-col border-2 border-dashed border-slate-200 rounded-xl flex items-center justify-center overflow-hidden bg-slate-50 relative shrink-0 ${!item.image ? 'print:hidden' : ''}`}>
+                    <div className={`item-row-img-col w-24 h-24 border-2 border-dashed border-slate-200 rounded-xl flex items-center justify-center overflow-hidden bg-slate-50 relative shrink-0 ${!item.image ? 'print:hidden' : ''}`}>
                       {item.image ? (
                         <img src={item.image} alt="Produto" className="w-full h-full object-cover" />
                       ) : (

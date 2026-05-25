@@ -20,6 +20,24 @@
             -webkit-font-smoothing: antialiased;
         }
 
+        /* Estilos globais para os itens (tela e impressão) */
+        .item-row-img-col {
+            width: 96px !important;
+            height: 96px !important;
+            flex-shrink: 0 !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+        }
+        .item-row-details-col {
+            flex: 1 !important;
+            width: auto !important;
+            display: flex !important;
+            flex-direction: column !important;
+            justify-content: space-between !important;
+            min-height: 96px !important;
+        }
+
         /* Estilos de Impressão e Captura */
         @media print {
             @page {
